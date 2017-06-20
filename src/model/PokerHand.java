@@ -9,7 +9,6 @@ package model;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import model.DuplicateCardException;
 import model.Rank;
 
 public class PokerHand {
@@ -29,17 +28,9 @@ public class PokerHand {
 	public PokerHand(Card c1, Card c2, Card c3, Card c4, Card c5) {
 		cards = new ArrayList<Card>();
 		cards.add(c1);
-		if (cards.contains(c2))
-			throw new DuplicateCardException();
 		cards.add(c2);
-		if (cards.contains(c3))
-			throw new DuplicateCardException();
 		cards.add(c3);
-		if (cards.contains(c4))
-			throw new DuplicateCardException();
 		cards.add(c4);
-		if (cards.contains(c5))
-			throw new DuplicateCardException();
 		cards.add(c5);
 		Collections.sort(cards);
 		this.highCard = getHighCard();
@@ -59,14 +50,29 @@ public class PokerHand {
 		return highCard;
 	}
 
+	public int findDiffCard(PokerHand ph) {
+		int index = 0;
+		for (int i = 0; i < ph.cards.size(); i++) {
+			if (this.cards.get(i).compareTo(ph.cards.get(i)) != 0)
+				index = i;
+		}
+		return this.cards.get(index).getValue() - ph.cards.get(index).getValue();
+	}
+
 	public boolean hasOnePair() {
 		int numPairs = 0;
 		for (int i = 0; i < cards.size(); i++) {
-			for (int j = i + 1; j < cards.size(); j++)
+			for (int j = i + 1; j < cards.size(); j++) {
+				if (cards.get(3).getRank() == Rank.ACE && cards.get(4).getRank() == Rank.ACE
+						&& cards.get(2).getRank() != Rank.ACE)
+					return true;
 				if (cards.get(i).getRank() == cards.get(j).getRank())
 					numPairs++;
+			}
+			if (numPairs == 1)
+				return true;
 		}
-		return (numPairs == 1);
+		return false;
 	}
 
 	// Return true if there are exactly two pairs in this hand
@@ -74,9 +80,10 @@ public class PokerHand {
 	public boolean hasTwoPair() {
 		int numPairs = 0;
 		for (int i = 0; i < cards.size(); i++) {
-			for (int j = i + 1; j < cards.size(); j++)
+			for (int j = i + 1; j < cards.size(); j++) {
 				if (cards.get(i).getRank() == cards.get(j).getRank())
 					numPairs++;
+			}
 		}
 		return (numPairs == 2);
 	}
@@ -95,16 +102,14 @@ public class PokerHand {
 	}
 
 	public boolean hasFourOfAKind() {
-		int numVals = 0;
-		for (int i = 0; i < cards.size(); i++) {
-			for (int j = i + 1; j < cards.size(); j++) {
-				if (cards.get(i).getRank() == cards.get(j).getRank())
-					numVals++;
-			}
-			if (numVals == 4)
-				return true;
-		}
-		return false;
+		if (cards.get(0).getRank() == cards.get(1).getRank() && cards.get(1).getRank() == cards.get(2).getRank()
+				&& cards.get(2).getRank() == cards.get(3).getRank())
+			return true;
+		else if (cards.get(4).getRank() == cards.get(1).getRank() && cards.get(1).getRank() == cards.get(2).getRank()
+				&& cards.get(2).getRank() == cards.get(3).getRank())
+			return true;
+		else
+			return false;
 	}
 
 	public boolean hasFlush() {
@@ -117,11 +122,19 @@ public class PokerHand {
 
 	public boolean hasStraight() {
 		if (getHighCard().getRank() == Rank.ACE) {
-			for (int i = 1; i < cards.size() - 1; i++) {
-				if (cards.get(0).getValue() + i != cards.get(i).getValue())
-					return false;
-			}
-			if (cards.get(0).getRank() != Rank.DEUCE || cards.get(0).getRank() != Rank.TEN)
+			if (cards.get(0).getRank() == Rank.DEUCE && cards.get(1).getRank() == Rank.THREE
+					&& cards.get(2).getRank() == Rank.FOUR && cards.get(3).getRank() == Rank.FIVE) {
+				cards.add(0, cards.get(cards.size() - 1));
+				cards.remove(cards.size() - 1);
+				return true;
+			} else if (cards.get(0).getRank() == Rank.TEN && cards.get(1).getRank() == Rank.JACK
+					&& cards.get(2).getRank() == Rank.QUEEN && cards.get(3).getRank() == Rank.KING)
+				return true;
+			else if (cards.get(0).getRank() == Rank.ACE && cards.get(1).getRank() == Rank.DEUCE
+					&& cards.get(2).getRank() == Rank.THREE && cards.get(3).getRank() == Rank.FOUR
+					&& cards.get(4).getRank() == Rank.FIVE)
+				return true;
+			else
 				return false;
 		} else {
 			for (int i = 1; i < cards.size(); i++) {
@@ -191,6 +204,7 @@ public class PokerHand {
 	}
 
 	public int compareTo(PokerHand ph) {
+
 		this.hasOnePair = hasOnePair();
 		this.hasTwoPair = hasTwoPair();
 		this.hasThreeOfAKind = hasThreeOfAKind();
@@ -215,7 +229,9 @@ public class PokerHand {
 		if (this.handRank - ph.handRank != 0)
 			return this.handRank - ph.handRank;
 		else if (ph.handRank == 1) {
-			if (getHighPair(this) == getHighPair(ph))
+			if (getHighPair(this) == getHighPair(ph) && this.highCard.getValue() == ph.highCard.getValue())
+				return findDiffCard(ph);
+			else if (getHighPair(this) == getHighPair(ph))
 				return this.highCard.getValue() - ph.highCard.getValue();
 			else
 				return getHighPair(this) - getHighPair(ph);
@@ -227,9 +243,16 @@ public class PokerHand {
 			else
 				return getHighPair(this) - getHighPair(ph);
 		} else if (ph.handRank == 3 || ph.handRank == 6 || ph.handRank == 7) {
-			return this.cards.get(3).getValue() - ph.cards.get(3).getValue();
+			if (this.cards.get(2).getRank() == ph.cards.get(2).getRank()
+					&& this.cards.get(0).getValue() != ph.cards.get(0).getValue())
+				return this.cards.get(0).getValue() - ph.cards.get(0).getValue();
+			else if (this.cards.get(2).getRank() == ph.cards.get(2).getRank()
+					&& this.cards.get(4).getValue() != ph.cards.get(4).getValue())
+				return this.cards.get(4).getValue() - ph.cards.get(4).getValue();
+			else
+				return this.cards.get(2).getValue() - ph.cards.get(2).getValue();
 		} else if (ph.handRank == 4 || ph.handRank == 8) {
-			return this.cards.get(4).getValue() - ph.cards.get(4).getValue();
+			return this.cards.get(3).getValue() - ph.cards.get(3).getValue();
 		} else if (ph.handRank == 5 || ph.handRank == 0) {
 			if (this.cards.get(4).getValue() == ph.cards.get(4).getValue())
 				if (this.cards.get(3).getValue() == ph.cards.get(3).getValue())
