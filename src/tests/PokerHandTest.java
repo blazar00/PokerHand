@@ -8,7 +8,6 @@ import model.Card;
 import model.PokerHand;
 import model.Rank;
 import model.Suit;
-import model.DuplicateCardException;
 
 /**
  * Tests the PokerHand class and the enums
@@ -35,12 +34,6 @@ public class PokerHandTest {
 		for (Rank rank : Rank.values())
 			result += rank + " ";
 		assertEquals("DEUCE THREE FOUR FIVE SIX SEVEN EIGHT NINE TEN JACK QUEEN KING ACE", result.trim());
-	}
-
-	// Do not allow duplicate cards, throw an exception
-	@Test(expected = DuplicateCardException.class)
-	public void tryToAddTheSameCardTwiceA() {
-		new PokerHand(C2, C3, C4, C5, C5);
 	}
 
 	/*
@@ -204,4 +197,74 @@ public class PokerHandTest {
 		assertTrue(highCard2.compareTo(highCard5) < 0);
 		assertTrue(twoPair4.compareTo(twoPair3) < 0);
 	}
+	
+	// These tests were added after removing DuplicateCardException
+	  // because things change when cards can be shared. This assumes
+	  // there are no more DuplicateCardException checks. Notice these 
+	  // output incorrectly list ties for full house. Only 2 should tie
+	  /*
+	  Winning hands (tie) 
+	  3♣ 3♦ A♦ A♣ A♥    FULL_HOUSE Player 8 $55.0
+	  6♠ 6♦ A♦ A♣ A♥    FULL_HOUSE Player 7 $109.0
+	  6♠ 6♥ A♦ A♣ A♥    FULL_HOUSE Player 4 $100.0
+	  3♣ 3♥ A♦ A♣ A♥    FULL_HOUSE Player 2 $154.0
+	  Play another game? <y OR n> 
+	  */
+	
+	  @Test
+	  public void testFullHouseHands() {
+	    PokerHand a = new PokerHand(S6, D6, DA, CA, HA);  // Both hands can have the same 3 Aces
+	    PokerHand b = new PokerHand(S3, D3, DA, CA, HA);
+	    assertTrue(a.compareTo(b) > 0);
+	    assertTrue(b.compareTo(a) < 0);
+	  }
+	 
+	  @Test
+	  public void testFullHouseHands2() {
+	    PokerHand a = new PokerHand(S6, D6, DA, CA, HA);
+	    PokerHand b = new PokerHand(C6, H6, DA, CA, HA);
+	    assertTrue(a.compareTo(b) == 0);
+	    assertTrue(b.compareTo(a) == 0);
+	  }
+	  
+	  @Test
+	  public void testFullHouseHands3() {
+	    PokerHand a = new PokerHand(S6, D6, DA, CA, HA);
+	    PokerHand b = new PokerHand(C7, H7, DA, CA, HA);
+	    assertTrue(a.compareTo(b) < 0);
+	    assertTrue(b.compareTo(a)> 0);
+	  }
+	 
+	  @Test
+	  public void testThreeOfAKind() {
+	    PokerHand a = new PokerHand(S6, D7, DA, CA, HA);
+	    PokerHand b = new PokerHand(C5, H6, DA, CA, HA);
+	    assertTrue(a.compareTo(b) > 0);
+	    assertTrue(b.compareTo(a) <  0);
+	  }
+	  
+	  @Test
+	  public void testThreeOfAKind3() {
+	    PokerHand a = new PokerHand(S7, D6, DA, CA, HA);
+	    PokerHand b = new PokerHand(C7, H6, DA, CA, HA);
+	    assertTrue(a.compareTo(b) == 0);
+	    assertTrue(b.compareTo(a) ==  0);
+	  }
+	  
+	  @Test
+	  public void testFourOfAKind() {
+	    PokerHand a = new PokerHand(S7, CA, DA, HA, SA);
+	    PokerHand b = new PokerHand(D7, CA, DA, HA, SA);
+	    assertTrue(a.compareTo(b) == 0);
+	    assertTrue(b.compareTo(a) ==  0);
+	  }
+	  
+	  @Test
+	  public void testFourOfAKind4() {
+	    PokerHand a = new PokerHand(S8, CA, DA, HA, SA);
+	    PokerHand b = new PokerHand(D7, CA, DA, HA, SA);
+	    assertTrue(a.compareTo(b) > 0);
+	    assertTrue(b.compareTo(a)<   0);
+	  }
+
 }

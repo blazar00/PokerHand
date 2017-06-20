@@ -23,17 +23,6 @@ public class SuitTest {
     assertTrue(Suit.SPADES instanceof Suit);
   }
 
-  
-  @Test
-  public void testSuit() {
-    // Onyl for code coverage
-    assertEquals(Suit.CLUBS, Suit.CLUBS);
-    assertEquals(Suit.DIAMONDS, Suit.DIAMONDS);
-    assertEquals(Suit.HEARTS, Suit.HEARTS);
-    assertEquals(Suit.SPADES, Suit.SPADES);
-  }
-  
-  
   @Test
   public void testSuitWithTheBuiltInMethodValues() {
     String result = "";
